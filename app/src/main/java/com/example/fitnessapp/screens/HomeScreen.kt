@@ -1,15 +1,36 @@
 package com.example.fitnessapp.screens
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,12 +41,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.fitnessapp.components.BottomNavigationBar
-import com.example.fitnessapp.ui.theme.LightGray
 import com.example.fitnessapp.ui.theme.SmokeGray
+import com.example.fitnessapp.utils.SharedManager
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+@RequiresApi(Build.VERSION_CODES.O)
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter", "DefaultLocale")
 @Composable
 fun HomeScreen(navController: NavHostController) {
+    // State for the name and current weight, initialized with the current value from SharedManager
+    val name by remember { mutableStateOf(SharedManager.getName()) }
+    val currentWeight by remember { mutableDoubleStateOf(SharedManager.getCurrentWeight()) }
+
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
     ) {
@@ -38,7 +64,7 @@ fun HomeScreen(navController: NavHostController) {
         ) {
             // Greeting
             Text(
-                text = "Hi [Name]",
+                text = "Hi $name",
                 style = MaterialTheme.typography.h4,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
@@ -46,7 +72,7 @@ fun HomeScreen(navController: NavHostController) {
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-            StatCard(label = "Current Weight", value = "165", unit = "lbs")
+            StatCard(label = "Current Weight", value = String.format("%.0f", currentWeight), unit = "lbs")
             Spacer(modifier = Modifier.height(16.dp))
 
             // Target Weight, Days Left
@@ -55,16 +81,15 @@ fun HomeScreen(navController: NavHostController) {
                 modifier = Modifier
                     .padding(bottom = 16.dp)
             ) {
-
-                StatCard(label = "Target Weight", value = "150", unit = "lbs")
+                StatCard(label = "Target Weight", value = String.format("%.0f", SharedManager.getGoalWeight()), unit = "lbs")
                 Spacer(modifier = Modifier.width(16.dp))
-                StatCard(label = "Days Left", value = "42", unit = "")
+                StatCard(label = "Days Left", value = SharedManager.getDaysLeftFromGoalDate().toString(), unit = "")
             }
 
             // Capture Your Progress Button
             Button(
                 onClick = {
-
+                    // Handle button click
                 },
                 modifier = Modifier
                     .fillMaxWidth()
