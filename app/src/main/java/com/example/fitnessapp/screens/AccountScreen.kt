@@ -1,8 +1,14 @@
 package com.example.fitnessapp.screens
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.net.Uri
+import android.provider.MediaStore
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -38,7 +45,6 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,49 +53,63 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import com.example.fitnessapp.components.BottomNavigationBar
+import com.example.fitnessapp.models.AccountEntity
 import com.example.fitnessapp.ui.theme.LightGray
 import com.example.fitnessapp.ui.theme.SmokeGray
-import com.example.fitnessapp.utils.SharedManager
+import com.example.fitnessapp.viewmodels.AccountViewModel
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter", "UnrememberedMutableState", "DefaultLocale")
 @Composable
-fun AccountScreen(navController: NavHostController) {
-    // Initial values from SharedManager
-    var initialGender by remember { mutableStateOf(SharedManager.getGender()) }
-    var initialGoalWeight by remember { mutableStateOf(String.format("%.0f", SharedManager.getGoalWeight())) }
-    var initialGoalDate by remember { mutableStateOf(SharedManager.getGoalDate()) }
-    var initialHeightFeet by remember { mutableStateOf(SharedManager.getHeightFeet().toString()) }
-    var initialHeightInches by remember { mutableStateOf(SharedManager.getHeightInches().toString()) }
-    var initialName by remember { mutableStateOf(SharedManager.getName()) }
+fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel = viewModel()) {
+    val account by viewModel.accountDetails.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
-    // State for current values
-    val gender = remember { mutableStateOf(initialGender) }
-    val goalWeight = remember { mutableStateOf(initialGoalWeight) }
-    var goalDate by remember { mutableStateOf(initialGoalDate) }
-    val heightFeet = remember { mutableStateOf(initialHeightFeet) }
-    val heightInches = remember { mutableStateOf(initialHeightInches) }
-    val name = remember { mutableStateOf(initialName) }
+    // State for form fields
+    var profilePhotoUri by remember { mutableStateOf(account?.profilePhotoUri ?: "") }
+    var name by remember { mutableStateOf(account?.name ?: "Your Name") }
+    var gender by remember { mutableStateOf(account?.gender ?: "") }
+    var goalWeight by remember { mutableStateOf(account?.goalWeight?.toString() ?: "") }
+    var goalDate by remember { mutableStateOf(account?.goalDate ?: "mm/dd/yyyy") }
+    var heightFeet by remember { mutableStateOf(account?.heightFeet?.toString() ?: "") }
+    var heightInches by remember { mutableStateOf(account?.heightInches?.toString() ?: "") }
 
     // State for showing dialogs
     val showNameDialog = remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
+    val saveSuccess = remember { mutableStateOf(false) }
 
-    // Derived state to check if any field has changed
-    val hasChanges by derivedStateOf {
-        gender.value != initialGender ||
-                goalWeight.value != initialGoalWeight ||
-                goalDate != initialGoalDate ||
-                heightFeet.value != initialHeightFeet ||
-                heightInches.value != initialHeightInches ||
-                name.value != initialName
+    // Update fields when account updates
+    LaunchedEffect(account) {
+        name = account?.name ?: "Your Name"
+        gender = account?.gender ?: ""
+        goalWeight = account?.goalWeight?.toString() ?: ""
+        goalDate = account?.goalDate ?: "mm/dd/yyyy"
+        heightFeet = account?.heightFeet?.toString() ?: ""
+        heightInches = account?.heightInches?.toString() ?: ""
+        profilePhotoUri = account?.profilePhotoUri ?: ""
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            val filePath = getFilePathFromUri(context, it) ?: it.toString()
+            profilePhotoUri = filePath
+            viewModel.updateProfilePhoto(filePath)
+        }
     }
 
     Scaffold(
@@ -99,25 +119,38 @@ fun AccountScreen(navController: NavHostController) {
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-                .padding(horizontal = 20.dp),
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(50.dp))
 
-            // Profile Image
+            // Profile Image Picker
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .size(150.dp),
+                    .size(150.dp)
+                    .clip(CircleShape)
+                    .background(Color.Gray)
+                    .clickable { launcher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
-                    contentDescription = "Arrow Down Icon",
-                    modifier = Modifier.size(150.dp),
-                    tint = Color.Gray
-                )
+                if (profilePhotoUri.isNotEmpty()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(profilePhotoUri)
+                            .build(),
+                        contentDescription = "Profile Photo",
+                        modifier = Modifier
+                            .size(150.dp)
+                            .clip(CircleShape)
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = "Add Profile Picture",
+                        tint = Color.White,
+                        modifier = Modifier.size(80.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -129,7 +162,7 @@ fun AccountScreen(navController: NavHostController) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = name.value,
+                    text = name,
                     style = MaterialTheme.typography.h5,
                     fontWeight = FontWeight.Bold
                 )
@@ -155,8 +188,8 @@ fun AccountScreen(navController: NavHostController) {
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.fillMaxWidth()
             )
-            DropdownMenuComponent(selectedValue = gender.value) { selected ->
-                gender.value = selected
+            DropdownMenuComponent(selectedValue = gender) { selected ->
+                gender = selected
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -171,11 +204,11 @@ fun AccountScreen(navController: NavHostController) {
                 // Goal Weight Input
                 InputField(
                     label = "Goal Weight",
-                    value = goalWeight.value,
-                    onValueChange = { goalWeight.value = it },
+                    value = goalWeight,
+                    onValueChange = { goalWeight = it },
                     unit = "lbs",
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f) // Equal width
+                    modifier = Modifier.weight(1f)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
 
@@ -183,7 +216,7 @@ fun AccountScreen(navController: NavHostController) {
                 Column(
                     horizontalAlignment = Alignment.Start,
                     modifier = Modifier
-                        .weight(1f) // Equal width
+                        .weight(1f)
                         .height(IntrinsicSize.Min)
                 ) {
                     Text(
@@ -195,9 +228,7 @@ fun AccountScreen(navController: NavHostController) {
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Button(
-                        onClick = {
-                            showDatePicker = true
-                        },
+                        onClick = { showDatePicker = true },
                         colors = ButtonDefaults.buttonColors(backgroundColor = SmokeGray),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -227,8 +258,8 @@ fun AccountScreen(navController: NavHostController) {
             ) {
                 InputField(
                     label = "Height",
-                    value = heightFeet.value,
-                    onValueChange = { heightFeet.value = it },
+                    value = heightFeet,
+                    onValueChange = { heightFeet = it },
                     unit = "ft",
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f)
@@ -236,8 +267,8 @@ fun AccountScreen(navController: NavHostController) {
                 Spacer(modifier = Modifier.width(16.dp))
                 InputField(
                     label = "",
-                    value = heightInches.value,
-                    onValueChange = { heightInches.value = it },
+                    value = heightInches,
+                    onValueChange = { heightInches = it },
                     unit = "in",
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f)
@@ -246,42 +277,38 @@ fun AccountScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Save Button (only shown if there are changes)
-            if (hasChanges) {
-                Button(
-                    onClick = {
-                        // Save data to SharedManager
-                        SharedManager.setName(name.value)
-                        SharedManager.setGender(gender.value)
-                        SharedManager.setGoalWeight(goalWeight.value.toDoubleOrNull() ?: 0.0)
-                        SharedManager.setGoalDate(goalDate)
-                        SharedManager.setHeightFeet(heightFeet.value.toIntOrNull() ?: 0)
-                        SharedManager.setHeightInches(heightInches.value.toIntOrNull() ?: 0)
-
-                        // Update initial values to the new values
-                        initialName = name.value
-                        initialGender = gender.value
-                        initialGoalWeight = goalWeight.value
-                        initialGoalDate = goalDate
-                        initialHeightFeet = heightFeet.value
-                        initialHeightInches = heightInches.value
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black)
-                ) {
-                    Text(
-                        text = "Save",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+            // Save Button
+            Button(
+                onClick = {
+                    val updatedAccount = AccountEntity(
+                        id = 1, // Ensure we always update the same user
+                        name = name,
+                        gender = gender,
+                        goalWeight = goalWeight.toDoubleOrNull() ?: 0.0,
+                        goalDate = goalDate,
+                        heightFeet = heightFeet.toIntOrNull() ?: 0,
+                        heightInches = heightInches.toIntOrNull() ?: 0,
+                        profilePhotoUri = profilePhotoUri
                     )
-                }
+                    viewModel.saveAccountDetails(updatedAccount) // Save to DB
+                    saveSuccess.value = true
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black)
+            ) {
+                Text(
+                    text = "Save",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
             }
         }
     }
+
 
     // Name Edit Popup
     if (showNameDialog.value) {
@@ -293,8 +320,8 @@ fun AccountScreen(navController: NavHostController) {
             text = {
                 Column {
                     TextField(
-                        value = name.value,
-                        onValueChange = { name.value = it },
+                        value = name,
+                        onValueChange = { name = it },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         placeholder = { Text("Enter your name") }
@@ -330,11 +357,31 @@ fun AccountScreen(navController: NavHostController) {
             onDateSelected = { date ->
                 goalDate = date // Update the date input field
                 showDatePicker = false // Hide the DatePicker
-            },
-            onDismiss = { showDatePicker = false } // Hide the DatePicker on dismiss
+            }
         )
     }
+
+    // Toast when account details are saved
+    LaunchedEffect(saveSuccess.value) {
+        if (saveSuccess.value) {
+            Toast.makeText(context, "Account details saved successfully!", Toast.LENGTH_SHORT).show()
+            saveSuccess.value = false
+        }
+    }
 }
+
+fun getFilePathFromUri(context: Context, uri: Uri): String? {
+    var filePath: String? = null
+    val cursor = context.contentResolver.query(uri, arrayOf(MediaStore.Images.Media.DATA), null, null, null)
+    cursor?.use {
+        if (it.moveToFirst()) {
+            val columnIndex = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+            filePath = it.getString(columnIndex)
+        }
+    }
+    return filePath
+}
+
 
 @Composable
 fun DropdownMenuComponent(selectedValue: String, onValueChange: (String) -> Unit) {

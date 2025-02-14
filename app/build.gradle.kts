@@ -1,6 +1,8 @@
 plugins {
-    alias(libs.plugins.android.application) // Ensure `libs.plugins.android.application` exists in your `gradle/libs.versions.toml`.
-    alias(libs.plugins.kotlin.android) // Ensure `libs.plugins.kotlin.android` exists in your `gradle/libs.versions.toml`.
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.compose) // Apply KSP Plugin for Room
 }
 
 android {
@@ -8,11 +10,11 @@ android {
     compileSdk = 35
 
     buildFeatures {
-        compose = true // Enable Jetpack Compose
+        compose = true
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15" // Ensure this matches your Compose version
+        kotlinCompilerExtensionVersion = "1.8.20"
     }
 
     defaultConfig {
@@ -36,12 +38,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 }
 
@@ -57,13 +59,21 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.activity.compose) // Add this line
-    implementation("com.kizitonwose.calendar:view:2.3.0")
-    implementation("com.kizitonwose.calendar:compose:2.3.0")
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.view.v230)
+    implementation(libs.compose.v230)
+    implementation("io.coil-kt.coil3:coil-compose:3.1.0")
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
+
     // Material Components
     implementation(libs.material)
+
+    // Room Database Dependencies
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler) // Use KSP for Room instead of kapt
+
 
     // Testing dependencies
     testImplementation(libs.junit)

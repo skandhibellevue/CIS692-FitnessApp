@@ -1,20 +1,26 @@
 [versions]
-agp = "8.7.2" # Android Gradle Plugin version
+agp = "8.7.3" # Android Gradle Plugin version
+compose = "2.6.2"
 desugar_jdk_libs = "2.6.2"
-kotlin = "1.9.25" # Kotlin version
+kotlin = "2.1.0" # Kotlin version
+ksp = "1.9.25"
 coreKtx = "1.15.0" # AndroidX Core KTX version
 junit = "4.13.2" # JUnit version
 junitVersion = "1.2.1" # AndroidX Test JUnit version
 espressoCore = "3.6.1" # Espresso version
-appcompat = "1.6.1" # AppCompat version
-material = "1.10.0" # Material Components version
-materialCompose = "1.5.3" # Compose Material version
-materialIconsExtended = "1.5.3" # Compose Material Icons Extended version
-navigationCompose = "2.8.5" # Navigation Compose version
-composeUi = "1.7.6" # Compose UI version
+appcompat = "1.7.0" # AppCompat version
+material = "1.12.0" # Material Components version
+materialCompose = "1.7.8" # Compose Material version
+materialIconsExtended = "1.7.8" # Compose Material Icons Extended version
+navigationCompose = "2.8.7" # Navigation Compose version
+composeUi = "1.7.8" # Compose UI version
 material3 = "1.3.1" # Material 3 version
-activityCompose = "1.8.2" # Activity Compose version
+activityCompose = "1.10.0" # Activity Compose version
 view = "2.6.2"
+
+# Room Versions
+room = "2.6.1"
+viewVersion = "2.6.2"
 
 [libraries]
 # Core dependencies
@@ -30,8 +36,14 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 
+# Room Database Dependencies
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+
 # Testing dependencies
 compose = { module = "com.kizitonwose.calendar:compose", version.ref = "view" }
+compose-v230 = { module = "com.kizitonwose.calendar:compose", version.ref = "compose" }
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -40,7 +52,10 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 # Material Components
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 view = { module = "com.kizitonwose.calendar:view", version.ref = "view" }
+view-v230 = { module = "com.kizitonwose.calendar:view", version.ref = "viewVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version = "2.0.21-1.0.27" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" } # Added KSP Plugin for Room
