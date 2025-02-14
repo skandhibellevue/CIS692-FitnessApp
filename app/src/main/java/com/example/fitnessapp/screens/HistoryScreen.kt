@@ -22,13 +22,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -71,9 +71,9 @@ fun HistoryScreen(
         ) {
             Text(
                 text = "History",
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier
-                    .padding(bottom = 16.dp, top = 40.dp)
+                style = MaterialTheme.typography.h4,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp, top = 40.dp)
             )
 
             // Display weight entries
@@ -100,13 +100,13 @@ fun HistoryScreen(
                     ) {
                         Text(
                             text = entry.date,
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.body1,
                             fontWeight = FontWeight.Bold
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = "${entry.weight} lbs",
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.body1
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Icon(
@@ -120,7 +120,7 @@ fun HistoryScreen(
                         // Expanded row with notes and additional actions
                         Text(
                             text = "Notes: ${entry.notes}",
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.body1,
                             modifier = Modifier.padding(top = 8.dp)
                         )
                         Spacer(modifier = Modifier.height(8.dp))

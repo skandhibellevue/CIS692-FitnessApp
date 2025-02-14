@@ -12,9 +12,12 @@ import com.example.fitnessapp.ui.theme.yellow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Calendar
+import java.util.Locale
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val database = FitnessApp.database
@@ -39,9 +42,16 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _heightInch = MutableStateFlow(0)
     val heightInch: StateFlow<Int> = _heightInch
 
+    private val _weekWeights = MutableStateFlow<Map<String, Double>>(emptyMap())
+    val weekWeights: StateFlow<Map<String, Double>> = _weekWeights
+
+    private val _targetWeight = MutableStateFlow(0.0)
+    val targetWeight: StateFlow<Double> = _targetWeight
+
     init {
         fetchAccountDetails()
         fetchLatestWeightEntry()
+        fetchWeekWeightEntries()
     }
 
     private fun fetchAccountDetails() {
@@ -105,5 +115,20 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         return Triple(String.format("%.2f", bmi), status, statusColor)
+    }
+
+    private fun fetchWeekWeightEntries() {
+        viewModelScope.launch {
+            val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+            val calendar = Calendar.getInstance()
+            calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+            val startDate = dateFormat.format(calendar.time)
+
+            calendar.add(Calendar.DAY_OF_WEEK, 6)
+            val endDate = dateFormat.format(calendar.time)
+
+            val weightEntries = weightEntryDao.getWeekWeightEntries(startDate, endDate)
+            _weekWeights.value = weightEntries.associate { it.date to it.weight }
+        }
     }
 }

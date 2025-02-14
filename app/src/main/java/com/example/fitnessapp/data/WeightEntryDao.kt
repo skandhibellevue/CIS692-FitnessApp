@@ -21,5 +21,8 @@ interface WeightEntryDao {
 
     @Delete
     suspend fun delete(weightEntry: WeightEntry): Int
+
+    @Query("SELECT * FROM weight_entries WHERE date >= :startDate AND date <= :endDate ORDER BY date ASC")
+    suspend fun getWeekWeightEntries(startDate: String, endDate: String): List<WeightEntry>
 }
 

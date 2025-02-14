@@ -50,8 +50,13 @@ import com.example.fitnessapp.data.WeightEntryViewModelFactory
 import com.example.fitnessapp.ui.theme.LightGray
 import com.example.fitnessapp.ui.theme.SmokeGray
 import com.example.fitnessapp.ui.theme.primaryGreen
+import com.example.fitnessapp.utils.formatWeight
 import com.example.fitnessapp.viewmodels.WeightEntryViewModel
+import java.lang.Double
 import java.util.Calendar
+import kotlin.String
+import kotlin.Unit
+import kotlin.let
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter", "UsingMaterialAndMaterial3Libraries")
 @Composable
@@ -141,7 +146,7 @@ fun WeightEntryScreen(navController: NavHostController) {
                 TextField(
                     value = weightInput,
                     modifier = Modifier.fillMaxWidth(),
-                    onValueChange = { weightInput = it },
+                    onValueChange = { weightInput = Double.parseDouble(it).formatWeight() },
                     textStyle = TextStyle(fontSize = 18.sp)
                 )
             }

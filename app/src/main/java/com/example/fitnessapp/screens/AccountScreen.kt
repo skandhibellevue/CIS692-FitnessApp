@@ -69,6 +69,7 @@ import com.example.fitnessapp.components.BottomNavigationBar
 import com.example.fitnessapp.models.AccountEntity
 import com.example.fitnessapp.ui.theme.LightGray
 import com.example.fitnessapp.ui.theme.SmokeGray
+import com.example.fitnessapp.utils.formatWeight
 import com.example.fitnessapp.viewmodels.AccountViewModel
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter", "UnrememberedMutableState", "DefaultLocale")
@@ -81,7 +82,7 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
     var profilePhotoUri by remember { mutableStateOf(account?.profilePhotoUri ?: "") }
     var name by remember { mutableStateOf(account?.name ?: "Your Name") }
     var gender by remember { mutableStateOf(account?.gender ?: "") }
-    var goalWeight by remember { mutableStateOf(account?.goalWeight?.toString() ?: "") }
+    var goalWeight by remember { mutableStateOf((account?.goalWeight?.formatWeight() ?: "").toString()) }
     var goalDate by remember { mutableStateOf(account?.goalDate ?: "mm/dd/yyyy") }
     var heightFeet by remember { mutableStateOf(account?.heightFeet?.toString() ?: "") }
     var heightInches by remember { mutableStateOf(account?.heightInches?.toString() ?: "") }
@@ -95,7 +96,7 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
     LaunchedEffect(account) {
         name = account?.name ?: "Your Name"
         gender = account?.gender ?: ""
-        goalWeight = account?.goalWeight?.toString() ?: ""
+        goalWeight = (account?.goalWeight?.formatWeight() ?: "").toString()
         goalDate = account?.goalDate ?: "mm/dd/yyyy"
         heightFeet = account?.heightFeet?.toString() ?: ""
         heightInches = account?.heightInches?.toString() ?: ""
