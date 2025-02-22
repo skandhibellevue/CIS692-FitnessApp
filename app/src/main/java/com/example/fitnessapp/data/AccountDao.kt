@@ -22,7 +22,18 @@ interface AccountDao {
     suspend fun insertOrUpdatePhoto(photoUri: String) {
         val affectedRows = updateProfilePhoto(photoUri)
         if (affectedRows == 0) {
-            insertOrUpdateAccount(AccountEntity(id = 1, name = "", gender = "", goalWeight = 0.0, goalDate = "", heightFeet = 0, heightInches = 0, profilePhotoUri = photoUri))
+            insertOrUpdateAccount(AccountEntity(
+                id = 1,
+                name = "",
+                gender = "",
+                goalWeight = 0.0,
+                goalDate = "",
+                heightFeet = 0,
+                heightInches = 0,
+                maxWeight = 0.0,
+                minWeight = 0.0,
+                profilePhotoUri = photoUri
+            ))
         }
     }
 }

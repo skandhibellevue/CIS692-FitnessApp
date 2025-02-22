@@ -53,6 +53,8 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = view
     val goalDate by viewModel.goalDate.collectAsStateWithLifecycle()
     val heightFt by viewModel.heightFt.collectAsStateWithLifecycle()
     val heightInch by viewModel.heightInch.collectAsStateWithLifecycle()
+    val maxWeight by viewModel.maxWeight.collectAsStateWithLifecycle()
+    val minWeight by viewModel.minWeight.collectAsStateWithLifecycle()
     val weekWeights by viewModel.weekWeights.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -118,7 +120,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = view
             }
 
             // Week Progress Chart
-            WeekProgressChart(weekWeights, goalWeight)
+            WeekProgressChart(weekWeights, maxWeight, minWeight)
         }
     }
 }
@@ -167,7 +169,7 @@ fun StatCard(label: String, value: String, unit: String) {
 }
 
 @Composable
-fun WeekProgressChart(weekWeights: Map<String, Double>, targetWeight: Double) {
+fun WeekProgressChart(weekWeights: Map<String, Double>, maxWeight: Double, minWeight: Double) {
     val daysOfWeekLabels = listOf("M", "T", "W", "Th", "F", "S", "Su")
     val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
 
@@ -179,11 +181,6 @@ fun WeekProgressChart(weekWeights: Map<String, Double>, targetWeight: Double) {
         calendar.add(Calendar.DAY_OF_WEEK, 1)
         date
     }
-
-    val maxWeight = 200.0
-    val minWeight = 100.0
-
-    val scaleFactor = 200 / (maxWeight - minWeight) // Scale for the bars
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -233,7 +230,7 @@ fun WeekProgressChart(weekWeights: Map<String, Double>, targetWeight: Double) {
                             fontWeight = FontWeight.Bold
                         )
                     }
-                    for (i in 0 until daysOfWeek.size) {
+                    for (i in daysOfWeek.indices) {
                         val weight = weekWeights[daysOfWeek[i]]
                         val isFilled = weight != null
                         val heightPercentage = if (isFilled) ((weight

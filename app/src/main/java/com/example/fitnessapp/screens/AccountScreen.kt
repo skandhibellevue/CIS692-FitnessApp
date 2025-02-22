@@ -45,6 +45,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -86,6 +87,8 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
     var goalDate by remember { mutableStateOf(account?.goalDate ?: "mm/dd/yyyy") }
     var heightFeet by remember { mutableStateOf(account?.heightFeet?.toString() ?: "") }
     var heightInches by remember { mutableStateOf(account?.heightInches?.toString() ?: "") }
+    var maxWeight by remember { mutableStateOf((account?.maxWeight?.formatWeight() ?: "").toString()) }
+    var minWeight by remember { mutableStateOf((account?.minWeight?.formatWeight() ?: "").toString()) }
 
     // State for showing dialogs
     val showNameDialog = remember { mutableStateOf(false) }
@@ -100,6 +103,8 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
         goalDate = account?.goalDate ?: "mm/dd/yyyy"
         heightFeet = account?.heightFeet?.toString() ?: ""
         heightInches = account?.heightInches?.toString() ?: ""
+        maxWeight = (account?.maxWeight?.formatWeight() ?: "").toString()
+        minWeight = (account?.minWeight?.formatWeight() ?: "").toString()
         profilePhotoUri = account?.profilePhotoUri ?: ""
     }
 
@@ -113,199 +118,264 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
         }
     }
 
+    val hasChanges by derivedStateOf {
+        profilePhotoUri != (account?.profilePhotoUri ?: "") ||
+                name != (account?.name ?: "Your Name") ||
+                gender != (account?.gender ?: "") ||
+                goalWeight != (account?.goalWeight?.formatWeight() ?: "").toString() ||
+                goalDate != (account?.goalDate ?: "mm/dd/yyyy") ||
+                heightFeet != (account?.heightFeet?.toString() ?: "") ||
+                heightInches != (account?.heightInches?.toString() ?: "") ||
+                maxWeight != (account?.maxWeight?.formatWeight() ?: "").toString() ||
+                minWeight != (account?.minWeight?.formatWeight() ?: "").toString()
+    }
+
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .verticalScroll(rememberScrollState()),
+            contentAlignment = Alignment.TopCenter
         ) {
-            Spacer(modifier = Modifier.height(50.dp))
-
-            // Profile Image Picker
-            Box(
+            Column(
                 modifier = Modifier
-                    .size(150.dp)
-                    .clip(CircleShape)
-                    .background(Color.Gray)
-                    .clickable { launcher.launch("image/*") },
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (profilePhotoUri.isNotEmpty()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(profilePhotoUri)
-                            .build(),
-                        contentDescription = "Profile Photo",
-                        modifier = Modifier
-                            .size(150.dp)
-                            .clip(CircleShape)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "Add Profile Picture",
-                        tint = Color.White,
-                        modifier = Modifier.size(80.dp)
-                    )
-                }
-            }
+                Spacer(modifier = Modifier.height(50.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Name and Edit Icon
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = name,
-                    style = MaterialTheme.typography.h5,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                IconButton(
-                    onClick = { showNameDialog.value = true },
-                    modifier = Modifier.size(30.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit Icon",
-                        tint = Color.Black
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Gender Dropdown
-            Text(
-                text = "Gender",
-                style = MaterialTheme.typography.body1,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth()
-            )
-            DropdownMenuComponent(selectedValue = gender) { selected ->
-                gender = selected
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Goal Weight and Date Row
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            ) {
-                // Goal Weight Input
-                InputField(
-                    label = "Goal Weight",
-                    value = goalWeight,
-                    onValueChange = { goalWeight = it },
-                    unit = "lbs",
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-
-                // Goal Date Input
-                Column(
-                    horizontalAlignment = Alignment.Start,
+                // Profile Image Picker
+                Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .height(IntrinsicSize.Min)
+                        .size(150.dp)
+                        .clip(CircleShape)
+                        .background(Color.Gray)
+                        .clickable { launcher.launch("image/*") },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Date",
-                        fontSize = 18.sp,
-                        textAlign = TextAlign.Left,
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Button(
-                        onClick = { showDatePicker = true },
-                        colors = ButtonDefaults.buttonColors(backgroundColor = SmokeGray),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(60.dp),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = goalDate,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Left,
-                            color = Color.Black,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
+                    if (profilePhotoUri.isNotEmpty()) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(profilePhotoUri)
+                                .build(),
+                            contentDescription = "Profile Photo",
+                            modifier = Modifier
+                                .size(150.dp)
+                                .clip(CircleShape)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = "Add Profile Picture",
+                            tint = Color.White,
+                            modifier = Modifier.size(80.dp)
                         )
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Height Row
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            ) {
-                InputField(
-                    label = "Height",
-                    value = heightFeet,
-                    onValueChange = { heightFeet = it },
-                    unit = "ft",
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                InputField(
-                    label = "",
-                    value = heightInches,
-                    onValueChange = { heightInches = it },
-                    unit = "in",
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Save Button
-            Button(
-                onClick = {
-                    val updatedAccount = AccountEntity(
-                        id = 1, // Ensure we always update the same user
-                        name = name,
-                        gender = gender,
-                        goalWeight = goalWeight.toDoubleOrNull() ?: 0.0,
-                        goalDate = goalDate,
-                        heightFeet = heightFeet.toIntOrNull() ?: 0,
-                        heightInches = heightInches.toIntOrNull() ?: 0,
-                        profilePhotoUri = profilePhotoUri
+                // Name and Edit Icon
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = name,
+                        style = MaterialTheme.typography.h5,
+                        fontWeight = FontWeight.Bold
                     )
-                    viewModel.saveAccountDetails(updatedAccount) // Save to DB
-                    saveSuccess.value = true
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black)
-            ) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(
+                        onClick = { showNameDialog.value = true },
+                        modifier = Modifier.size(30.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit Icon",
+                            tint = Color.Black
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Gender Dropdown
                 Text(
-                    text = "Save",
-                    color = Color.White,
+                    text = "Gender",
+                    style = MaterialTheme.typography.body1,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    modifier = Modifier.fillMaxWidth()
                 )
+                DropdownMenuComponent(selectedValue = gender) { selected ->
+                    gender = selected
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Goal Weight and Date Row
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                ) {
+                    // Goal Weight Input
+                    InputField(
+                        label = "Goal Weight",
+                        value = goalWeight,
+                        onValueChange = { goalWeight = it },
+                        unit = "lbs",
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    // Goal Date Input
+                    Column(
+                        horizontalAlignment = Alignment.Start,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(IntrinsicSize.Min)
+                    ) {
+                        Text(
+                            text = "Goal Date",
+                            style = MaterialTheme.typography.body1,
+                            textAlign = TextAlign.Left,
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Button(
+                            onClick = { showDatePicker = true },
+                            colors = ButtonDefaults.buttonColors(backgroundColor = SmokeGray),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = goalDate,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Left,
+                                color = Color.Black,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Height Row
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                ) {
+                    InputField(
+                        label = "Height",
+                        value = heightFeet,
+                        onValueChange = { heightFeet = it },
+                        unit = "ft",
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    InputField(
+                        label = "",
+                        value = heightInches,
+                        onValueChange = { heightInches = it },
+                        unit = "in",
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Week Progress
+                Column(
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.Start,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Week Progress Chart",
+                        fontSize = 18.sp,
+                        textAlign = TextAlign.Left,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp)
+                    ) {
+                        InputField(
+                            label = "Max Weight",
+                            value = maxWeight,
+                            onValueChange = { maxWeight = it },
+                            unit = "lbs",
+                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        InputField(
+                            label = "Min Weight",
+                            value = minWeight,
+                            onValueChange = { minWeight = it },
+                            unit = "lbs",
+                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Save Button
+                if (hasChanges) {
+                    Button(
+                        onClick = {
+                            val updatedAccount = AccountEntity(
+                                id = 1, // Ensure we always update the same user
+                                name = name,
+                                gender = gender,
+                                goalWeight = goalWeight.toDoubleOrNull() ?: 0.0,
+                                goalDate = goalDate,
+                                heightFeet = heightFeet.toIntOrNull() ?: 0,
+                                heightInches = heightInches.toIntOrNull() ?: 0,
+                                maxWeight = maxWeight.toDoubleOrNull() ?: 0.0,
+                                minWeight = minWeight.toDoubleOrNull() ?: 0.0,
+                                profilePhotoUri = profilePhotoUri
+                            )
+                            viewModel.saveAccountDetails(updatedAccount) // Save to DB
+                            saveSuccess.value = true
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black)
+                    ) {
+                        Text(
+                            text = "Save",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(100.dp))
             }
         }
     }
@@ -321,7 +391,7 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
             text = {
                 Column {
                     TextField(
-                        value = name,
+                        value = if (name == "Your Name") "" else name,
                         onValueChange = { name = it },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
@@ -358,6 +428,9 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
             onDateSelected = { date ->
                 goalDate = date // Update the date input field
                 showDatePicker = false // Hide the DatePicker
+            },
+            onCancel = {
+                showDatePicker = false
             }
         )
     }
@@ -407,6 +480,7 @@ fun DropdownMenuComponent(selectedValue: String, onValueChange: (String) -> Unit
                 Text(
                     text = selectedValue,
                     fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.body1,
                     color = Color.Black
                 )
                 Icon(

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">FitnessApp</string>
+    <string name="name_default">Your Name</string>
 </resources>

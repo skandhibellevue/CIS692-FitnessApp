@@ -12,5 +12,7 @@ data class AccountEntity(
     val goalDate: String,
     val heightFeet: Int,
     val heightInches: Int,
+    val maxWeight: Double,
+    val minWeight: Double,
     val profilePhotoUri: String? = null
 )

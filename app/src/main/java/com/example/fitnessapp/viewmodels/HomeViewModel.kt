@@ -42,6 +42,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _heightInch = MutableStateFlow(0)
     val heightInch: StateFlow<Int> = _heightInch
 
+    private val _maxWeight = MutableStateFlow(0.0)
+    val maxWeight: StateFlow<Double> = _maxWeight
+
+    private val _minWeight = MutableStateFlow(0.0)
+    val minWeight: StateFlow<Double> = _minWeight
+
     private val _weekWeights = MutableStateFlow<Map<String, Double>>(emptyMap())
     val weekWeights: StateFlow<Map<String, Double>> = _weekWeights
 
@@ -63,6 +69,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 _goalDate.value = account.goalDate
                 _heightFt.value = account.heightFeet
                 _heightInch.value = account.heightInches
+                _maxWeight.value = account.maxWeight
+                _minWeight.value = account.minWeight
             }
         }
     }
