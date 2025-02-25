@@ -1,6 +1,5 @@
 package com.example.fitnessapp.screens
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.net.Uri
 import android.widget.Toast
@@ -21,18 +20,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -62,13 +61,8 @@ import com.example.fitnessapp.ui.theme.LightGray
 import com.example.fitnessapp.ui.theme.SmokeGray
 import com.example.fitnessapp.utils.formatWeight
 import com.example.fitnessapp.viewmodels.WeightEntryViewModel
-import java.lang.Double
 import java.util.Calendar
-import kotlin.String
-import kotlin.Unit
-import kotlin.let
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter", "UsingMaterialAndMaterial3Libraries")
 @Composable
 fun WeightEntryScreen(navController: NavHostController) {
     val context = LocalContext.current
@@ -95,17 +89,19 @@ fun WeightEntryScreen(navController: NavHostController) {
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
-    ) {
+    ) { contentPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .background(Color.White)
+                .padding(16.dp)
+                .padding(contentPadding),
             horizontalAlignment = Alignment.Start
         ) {
             Text(
                 text = "Weight Entry",
-                style = MaterialTheme.typography.h4,
+                style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 16.dp, top = 40.dp)
             )
@@ -124,18 +120,20 @@ fun WeightEntryScreen(navController: NavHostController) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Button(
                     onClick = { showDatePicker = true },
-                    colors = ButtonDefaults.buttonColors(backgroundColor = SmokeGray),
-                    modifier = Modifier.fillMaxWidth().height(60.dp)
+                    colors = ButtonDefaults.buttonColors(containerColor = SmokeGray),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = dateInput,
-                            textAlign = TextAlign.Start,
-                            color = Color.Black,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
-                        )
-                    }
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = dateInput,
+                        textAlign = TextAlign.Start,
+                        color = Color.Black,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
                 }
             }
 
@@ -144,7 +142,9 @@ fun WeightEntryScreen(navController: NavHostController) {
             // Weight Input
             Column(
                 horizontalAlignment = Alignment.Start,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp)
             ) {
                 Text(
                     text = "Weight (lbs)",
@@ -159,7 +159,14 @@ fun WeightEntryScreen(navController: NavHostController) {
                     modifier = Modifier.fillMaxWidth(),
                     onValueChange = { weightInput = it },
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                    textStyle = TextStyle(fontSize = 18.sp)
+                    textStyle = TextStyle(fontSize = 18.sp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = SmokeGray,
+                        unfocusedContainerColor = SmokeGray,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -181,7 +188,7 @@ fun WeightEntryScreen(navController: NavHostController) {
                         .padding(vertical = 10.dp),
                     shape = RoundedCornerShape(25),
                     colors = ButtonDefaults
-                        .buttonColors(backgroundColor = Color.Black)
+                        .buttonColors(containerColor = Color.Black)
                 ) {
                     Icon(
                         imageVector = Icons.Default.CameraAlt,
@@ -248,14 +255,14 @@ fun WeightEntryScreen(navController: NavHostController) {
             ) {
                 Button(
                     onClick = {
-                        val weight = if (weightInput.isEmpty()) 0.0 else Double.parseDouble(weightInput).formatWeight().toDoubleOrNull() ?: 0.0
-                        if (weight == 0.0 || dateInput == "mm/dd/yyyy") {
+                        val weight = weightInput.toDoubleOrNull()?.formatWeight() ?: "0.0"
+                        if (weight == "0.0" || dateInput == "mm/dd/yyyy") {
                             invalidInput.value = true
                         } else {
                             invalidInput.value = false
                             viewModel.saveWeightEntry(
                                 dateInput,
-                                weight,
+                                weight.toDouble(),
                                 notesInput,
                                 progressPhotoUri
                             )
@@ -267,7 +274,7 @@ fun WeightEntryScreen(navController: NavHostController) {
                             progressPhotoUri = ""
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
                     modifier = Modifier.weight(1f).height(50.dp).padding(end = 8.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -285,7 +292,7 @@ fun WeightEntryScreen(navController: NavHostController) {
                         weightInput = ""
                         notesInput = ""
                     },
-                    colors = ButtonDefaults.buttonColors(backgroundColor = LightGray),
+                    colors = ButtonDefaults.buttonColors(containerColor = LightGray),
                     modifier = Modifier.weight(1f).height(50.dp).padding(start = 8.dp),
                     shape = RoundedCornerShape(25)
                 ) {
@@ -310,9 +317,9 @@ fun WeightEntryScreen(navController: NavHostController) {
                     if (existingEntry != null) {
                         weightInput = existingEntry.weight.formatWeight()
                         notesInput = existingEntry.notes
-                        progressPhotoUri = existingEntry.progressPhotoUri ?: ""
+                        progressPhotoUri = existingEntry.progressPhotoUri
                     } else {
-                        weightInput = ""
+                        weightInput = weightInput.ifEmpty { "" }
                         notesInput = ""
                         progressPhotoUri = ""
                     }
@@ -337,7 +344,7 @@ fun WeightEntryScreen(navController: NavHostController) {
     // Toast when there is an error in input
     LaunchedEffect(invalidInput.value) {
         if (invalidInput.value) {
-            Toast.makeText(context, "Please " + (if (dateInput == "mm/dd/yyyy") "select Date" else "enter Weight"), Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Please " + (if (dateInput == "mm/dd/yyyy") "select Date" else "enter valid Weight"), Toast.LENGTH_SHORT).show()
             invalidInput.value = false
         }
     }
@@ -407,8 +414,9 @@ fun NotesField(label: String, value: String, onValueChange: (String) -> Unit) {
                 .fillMaxWidth()
                 .height(120.dp)
                 .background(SmokeGray, shape = RoundedCornerShape(8.dp)),
-            colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = Color.Transparent,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent
             )

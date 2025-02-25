@@ -34,11 +34,4 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
             _accountDetails.value = account
         }
     }
-
-    fun updateProfilePhoto(photoUri: String) {
-        viewModelScope.launch {
-            accountDao.updateProfilePhoto(photoUri)
-            _accountDetails.value = _accountDetails.value?.copy(profilePhotoUri = photoUri)
-        }
-    }
 }

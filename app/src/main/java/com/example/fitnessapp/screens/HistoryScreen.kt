@@ -1,6 +1,5 @@
 package com.example.fitnessapp.screens
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,16 +15,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,28 +45,25 @@ import com.example.fitnessapp.components.BottomNavigationBar
 import com.example.fitnessapp.ui.theme.SmokeGray
 import com.example.fitnessapp.viewmodels.WeightEntryViewModel
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "DefaultLocale")
 @Composable
-fun HistoryScreen(
-    navController: NavHostController,
-    viewModel: WeightEntryViewModel = viewModel()
-) {
+fun HistoryScreen(navController: NavHostController, viewModel: WeightEntryViewModel = viewModel()) {
     val weightEntries = viewModel.weightEntries
     var expandedRowIndex by remember { mutableStateOf<Int?>(null) }
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
-    ) {
+    ) { contentPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White)
                 .padding(16.dp)
+                .padding(contentPadding)
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
                 text = "History",
-                style = MaterialTheme.typography.h4,
+                style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 16.dp, top = 40.dp)
             )
@@ -96,13 +92,13 @@ fun HistoryScreen(
                     ) {
                         Text(
                             text = entry.date,
-                            style = MaterialTheme.typography.body1,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = "${entry.weight} lbs",
-                                style = MaterialTheme.typography.body1
+                                style = MaterialTheme.typography.bodyMedium
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Icon(
@@ -116,7 +112,7 @@ fun HistoryScreen(
                         // Expanded row with notes and additional actions
                         Text(
                             text = "Notes: ${entry.notes}",
-                            style = MaterialTheme.typography.body1,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(top = 8.dp)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -143,7 +139,7 @@ fun HistoryScreen(
                                 .fillMaxWidth()
                                 .height(48.dp),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black)
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                         ) {
                             Text(
                                 text = "Delete",

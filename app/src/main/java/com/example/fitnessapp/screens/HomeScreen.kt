@@ -1,8 +1,5 @@
 package com.example.fitnessapp.screens
 
-import android.annotation.SuppressLint
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -18,9 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -43,8 +40,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-@RequiresApi(Build.VERSION_CODES.O)
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter", "DefaultLocale")
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = viewModel()) {
     val name by viewModel.name.collectAsStateWithLifecycle()
@@ -59,25 +54,26 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = view
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
-    ) {
+    ) { containerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White)
-                .padding(16.dp),
+                .padding(16.dp)
+                .padding(containerPadding),
             horizontalAlignment = Alignment.Start
         ) {
             // Greeting
             Text(
                 text = "Hi $name",
-                style = MaterialTheme.typography.h4,
+                style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .padding(bottom = 16.dp, top = 40.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-            StatCard(label = "Current Weight", value = String.format("%.0f", currentWeight), unit = "lbs")
+            StatCard(label = "Current Weight", value = String.format(Locale.US, "%.0f", currentWeight), unit = "lbs")
             Spacer(modifier = Modifier.height(16.dp))
 
             // Target Weight, Days Left
@@ -92,13 +88,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = view
             }
 
             // BMI
-            Text(
-                text = "Your BMI",
-                style = MaterialTheme.typography.h5,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
@@ -106,16 +95,16 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = view
                     .padding(bottom = 20.dp)
             ) {
                 StatCard(
-                    label = "",
+                    label = "Your BMI",
                     value = viewModel.calculateBMI(currentWeight, heightFt, heightInch).first,
                     unit = ""
                 )
                 Text(
                     text = viewModel.calculateBMI(currentWeight, heightFt, heightInch).second,
                     color = viewModel.calculateBMI(currentWeight, heightFt, heightInch).third,
-                    style = MaterialTheme.typography.body1,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
+                    modifier = Modifier.padding(start = 16.dp, top = 28.dp, bottom = 8.dp)
                 )
             }
 
@@ -133,7 +122,7 @@ fun StatCard(label: String, value: String, unit: String) {
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.body1,
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
         Box(
@@ -154,13 +143,13 @@ fun StatCard(label: String, value: String, unit: String) {
             ) {
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.h5,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = unit,
-                    style = MaterialTheme.typography.body1,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -188,7 +177,7 @@ fun WeekProgressChart(weekWeights: Map<String, Double>, maxWeight: Double, minWe
     ) {
         Text(
             text = "Week Progress",
-            style = MaterialTheme.typography.h5,
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -211,7 +200,7 @@ fun WeekProgressChart(weekWeights: Map<String, Double>, maxWeight: Double, minWe
                 ) {
                     Column (
                         modifier = Modifier.fillMaxHeight()
-                            .padding(top = 30.dp),
+                            .padding(top = 24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
@@ -221,7 +210,7 @@ fun WeekProgressChart(weekWeights: Map<String, Double>, maxWeight: Double, minWe
                             color = Color.DarkGray,
                             fontWeight = FontWeight.Bold
                         )
-                        Spacer(modifier = Modifier.height(160.dp))
+                        Spacer(modifier = Modifier.height(176.dp))
                         Text(
                             text = minWeight.formatWeight() + " lbs",
                             fontSize = 10.sp,

@@ -1,6 +1,5 @@
 package com.example.fitnessapp.screens
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
@@ -26,23 +25,23 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -73,7 +72,6 @@ import com.example.fitnessapp.ui.theme.SmokeGray
 import com.example.fitnessapp.utils.formatWeight
 import com.example.fitnessapp.viewmodels.AccountViewModel
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter", "UnrememberedMutableState", "DefaultLocale")
 @Composable
 fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel = viewModel()) {
     val account by viewModel.accountDetails.collectAsStateWithLifecycle()
@@ -82,6 +80,7 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
     // State for form fields
     var profilePhotoUri by remember { mutableStateOf(account?.profilePhotoUri ?: "") }
     var name by remember { mutableStateOf(account?.name ?: "Your Name") }
+    var tmpName by remember { mutableStateOf(name) }
     var gender by remember { mutableStateOf(account?.gender ?: "") }
     var goalWeight by remember { mutableStateOf((account?.goalWeight?.formatWeight() ?: "").toString()) }
     var goalDate by remember { mutableStateOf(account?.goalDate ?: "mm/dd/yyyy") }
@@ -93,7 +92,11 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
     // State for showing dialogs
     val showNameDialog = remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
+    val invalidName = remember { mutableStateOf(false) }
     val saveSuccess = remember { mutableStateOf(false) }
+    val invalidWeight = remember { mutableStateOf(false) }
+    val invalidHeight = remember { mutableStateOf(false) }
+    val invalidWeekProgressWeights = remember { mutableStateOf(false) }
 
     // Update fields when account updates
     LaunchedEffect(account) {
@@ -114,29 +117,32 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
         uri?.let {
             val filePath = getFilePathFromUri(context, it) ?: it.toString()
             profilePhotoUri = filePath
-            viewModel.updateProfilePhoto(filePath)
         }
     }
 
-    val hasChanges by derivedStateOf {
-        profilePhotoUri != (account?.profilePhotoUri ?: "") ||
-                name != (account?.name ?: "Your Name") ||
-                gender != (account?.gender ?: "") ||
-                goalWeight != (account?.goalWeight?.formatWeight() ?: "").toString() ||
-                goalDate != (account?.goalDate ?: "mm/dd/yyyy") ||
-                heightFeet != (account?.heightFeet?.toString() ?: "") ||
-                heightInches != (account?.heightInches?.toString() ?: "") ||
-                maxWeight != (account?.maxWeight?.formatWeight() ?: "").toString() ||
-                minWeight != (account?.minWeight?.formatWeight() ?: "").toString()
+    val hasChanges by remember {
+        derivedStateOf {
+            profilePhotoUri != (account?.profilePhotoUri ?: "") ||
+                    name != (account?.name ?: "Your Name") ||
+                    gender != (account?.gender ?: "") ||
+                    goalWeight != (account?.goalWeight?.formatWeight() ?: "").toString() ||
+                    goalDate != (account?.goalDate ?: "mm/dd/yyyy") ||
+                    heightFeet != (account?.heightFeet?.toString() ?: "") ||
+                    heightInches != (account?.heightInches?.toString() ?: "") ||
+                    maxWeight != (account?.maxWeight?.formatWeight() ?: "").toString() ||
+                    minWeight != (account?.minWeight?.formatWeight() ?: "").toString()
+        }
     }
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
-    ) {
+    ) { contentPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .padding(contentPadding)
+                .background(Color.White),
             contentAlignment = Alignment.TopCenter
         ) {
             Column(
@@ -186,12 +192,14 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
                 ) {
                     Text(
                         text = name,
-                        style = MaterialTheme.typography.h5,
+                        style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     IconButton(
-                        onClick = { showNameDialog.value = true },
+                        onClick = {
+                            tmpName = name
+                            showNameDialog.value = true },
                         modifier = Modifier.size(30.dp)
                     ) {
                         Icon(
@@ -207,7 +215,7 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
                 // Gender Dropdown
                 Text(
                     text = "Gender",
-                    style = MaterialTheme.typography.body1,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -244,7 +252,7 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
                     ) {
                         Text(
                             text = "Goal Date",
-                            style = MaterialTheme.typography.body1,
+                            style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Left,
                             color = Color.Black,
                             fontWeight = FontWeight.Bold,
@@ -252,7 +260,7 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
                         Spacer(modifier = Modifier.height(10.dp))
                         Button(
                             onClick = { showDatePicker = true },
-                            colors = ButtonDefaults.buttonColors(backgroundColor = SmokeGray),
+                            colors = ButtonDefaults.buttonColors(containerColor = SmokeGray),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(60.dp),
@@ -345,26 +353,43 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
                 if (hasChanges) {
                     Button(
                         onClick = {
-                            val updatedAccount = AccountEntity(
-                                id = 1, // Ensure we always update the same user
-                                name = name,
-                                gender = gender,
-                                goalWeight = goalWeight.toDoubleOrNull() ?: 0.0,
-                                goalDate = goalDate,
-                                heightFeet = heightFeet.toIntOrNull() ?: 0,
-                                heightInches = heightInches.toIntOrNull() ?: 0,
-                                maxWeight = maxWeight.toDoubleOrNull() ?: 0.0,
-                                minWeight = minWeight.toDoubleOrNull() ?: 0.0,
-                                profilePhotoUri = profilePhotoUri
-                            )
-                            viewModel.saveAccountDetails(updatedAccount) // Save to DB
-                            saveSuccess.value = true
+                            val enteredWeight = goalWeight.toDoubleOrNull() ?: 0.0
+                            val enteredHeightFt = heightFeet.toIntOrNull() ?: 0
+                            val enteredHeightInch = heightInches.toIntOrNull() ?: 0
+                            val enteredMaxWeight = maxWeight.toDoubleOrNull() ?: 0.0
+                            val enteredMinWeight = minWeight.toDoubleOrNull() ?: 0.0
+
+                            if (enteredWeight <= 0.0) {
+                                invalidWeight.value = true
+                            } else if (enteredHeightFt <= 0 || (heightInches.toIntOrNull() == null || enteredHeightInch < 0)) {
+                                invalidHeight.value = true
+                            } else if (enteredMaxWeight <= 0 || enteredMinWeight <= 0) {
+                                invalidWeekProgressWeights.value = true
+                            } else {
+                                invalidWeight.value = false
+                                invalidHeight.value = false
+                                invalidWeekProgressWeights.value = false
+                                val updatedAccount = AccountEntity(
+                                    id = 1, // Ensure we always update the same user
+                                    name = name,
+                                    gender = gender,
+                                    goalWeight = enteredWeight,
+                                    goalDate = goalDate,
+                                    heightFeet = enteredHeightFt,
+                                    heightInches = enteredHeightInch,
+                                    maxWeight = enteredMaxWeight,
+                                    minWeight = enteredMinWeight,
+                                    profilePhotoUri = profilePhotoUri
+                                )
+                                viewModel.saveAccountDetails(updatedAccount) // Save to DB
+                                saveSuccess.value = true
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black)
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
                     ) {
                         Text(
                             text = "Save",
@@ -386,13 +411,13 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
         AlertDialog(
             onDismissRequest = { showNameDialog.value = false },
             title = {
-                Text(text = "Edit Name", style = MaterialTheme.typography.h6)
+                Text(text = "Edit Name", style = MaterialTheme.typography.titleSmall)
             },
             text = {
                 Column {
                     TextField(
-                        value = if (name == "Your Name") "" else name,
-                        onValueChange = { name = it },
+                        value = if (tmpName == "Your Name") "" else tmpName,
+                        onValueChange = { tmpName = it },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         placeholder = { Text("Enter your name") }
@@ -402,7 +427,13 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
             confirmButton = {
                 TextButton(
                     onClick = {
-                        showNameDialog.value = false
+                        if (tmpName.isEmpty()) {
+                            invalidName.value = true
+                        } else {
+                            name = tmpName
+                            invalidName.value = false
+                            showNameDialog.value = false
+                        }
                     }
                 ) {
                     Text("Confirm", color = Color.Black)
@@ -418,7 +449,7 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
                 }
             },
             shape = RoundedCornerShape(12.dp),
-            backgroundColor = Color.White
+            containerColor = Color.White
         )
     }
 
@@ -440,6 +471,28 @@ fun AccountScreen(navController: NavHostController, viewModel: AccountViewModel 
         if (saveSuccess.value) {
             Toast.makeText(context, "Account details saved successfully!", Toast.LENGTH_SHORT).show()
             saveSuccess.value = false
+        }
+    }
+
+    // Toast for invalid name
+    LaunchedEffect(invalidName.value) {
+        if (invalidName.value) {
+            Toast.makeText(context, "Please enter valid name", Toast.LENGTH_SHORT).show()
+            invalidName.value = false
+        }
+    }
+
+    // Toast for invalid weights and height
+    LaunchedEffect(invalidWeight.value || invalidHeight.value || invalidWeekProgressWeights.value) {
+        if (invalidWeight.value) {
+            Toast.makeText(context, "Please enter valid goal weight", Toast.LENGTH_SHORT).show()
+            invalidWeight.value = false
+        } else if (invalidHeight.value) {
+            Toast.makeText(context, "Please enter valid height", Toast.LENGTH_SHORT).show()
+            invalidHeight.value = false
+        } else if (invalidWeekProgressWeights.value) {
+            Toast.makeText(context, "Please enter valid week progress weights", Toast.LENGTH_SHORT).show()
+            invalidWeekProgressWeights.value = false
         }
     }
 }
@@ -470,7 +523,7 @@ fun DropdownMenuComponent(selectedValue: String, onValueChange: (String) -> Unit
                 .height(75.dp)
                 .padding(vertical = 10.dp),
             shape = RoundedCornerShape(15),
-            colors = ButtonDefaults.buttonColors(backgroundColor = LightGray)
+            colors = ButtonDefaults.buttonColors(containerColor = LightGray)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -480,7 +533,7 @@ fun DropdownMenuComponent(selectedValue: String, onValueChange: (String) -> Unit
                 Text(
                     text = selectedValue,
                     fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.body1,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = Color.Black
                 )
                 Icon(
@@ -495,12 +548,12 @@ fun DropdownMenuComponent(selectedValue: String, onValueChange: (String) -> Unit
             onDismissRequest = { expanded.value = false }
         ) {
             items.forEach { item ->
-                DropdownMenuItem(onClick = {
+                DropdownMenuItem(
+                    text = { Text(text = item) },
+                    onClick = {
                     onValueChange(item)
                     expanded.value = false
-                }) {
-                    Text(text = item)
-                }
+                })
             }
         }
     }
@@ -521,7 +574,7 @@ fun InputField(
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.body1,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold
         )
         Box(
@@ -529,7 +582,7 @@ fun InputField(
                 .height(IntrinsicSize.Min)
                 .padding(top = 10.dp)
                 .clip(shape = RoundedCornerShape(15))
-                .background(SmokeGray)
+                .background(LightGray)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -547,8 +600,9 @@ fun InputField(
                         .weight(1f),
                     keyboardOptions = keyboardOptions,
                     singleLine = true,
-                    colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = Color.Transparent,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent
                     )
@@ -557,7 +611,7 @@ fun InputField(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = unit,
-                        style = MaterialTheme.typography.body1,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold
                     )
                 }

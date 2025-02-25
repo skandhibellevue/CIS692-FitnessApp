@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.fitnessapp"
-        minSdk = 25
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -62,7 +62,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.view.v230)
     implementation(libs.compose.v230)
-    implementation("io.coil-kt.coil3:coil-compose:3.1.0")
+    implementation(libs.coil.compose)
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
